@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supervisor Measurement Entry</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 480px;
+    }
+    .card h2 {
+      text-align: center;
+      color: #1a202c;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #4a5568;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #3182ce;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    button:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+    #statusMessage {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    .success {
+      background-color: #def7ec;
+      color: #03543f;
+    }
+    .error {
+      background-color: #fde8e8;
+      color: #9b1c1c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Measurement Data Entry</h2>
+    <form id="measurementForm">
+      
+      <div class="form-group">
+        <label for="location">LOCATION *</label>
+        <input type="text" id="location" name="location" placeholder="Enter site or room location" required>
+      </div>
+
+      <div class="form-group">
+        <label for="insideOutside">INSIDE / OUTSIDE *</label>
+        <select id="insideOutside" name="insideOutside" required>
+          <option value="" disabled selected>Select Option</option>
+          <option value="INSIDE">INSIDE</option>
+          <option value="OUTSIDE">OUTSIDE</option>
+        </select>
+      </div>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label for="length">LENGTH *</label>
+          <input type="number" step="any" id="length" name="length" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="width">WIDTH *</label>
+          <input type="number" step="any" id="width" name="width" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="height">HEIGHT *</label>
+          <input type="number" step="any" id="height" name="height" placeholder="0.00" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="qty">QTY *</label>
+        <input type="number" id="qty" name="qty" placeholder="Enter quantity" required>
+      </div>
+
+      <button type="submit" id="submitBtn">Submit Data</button>
+      <div id="statusMessage"></div>
+    </form>
+  </div>
+
+  <script>
+    // APNA GOOGLE APPS SCRIPT WEB APP URL YAHAN PASTE KAREIN:
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwnG-oew5ffCMoldt5XlteZR5clmEC2Qe1A52AOSppZapH6gFxYFWKLrf3-pF6cYsUR/exec';
+
+    const form = document.getElementById('measurementForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Saving Data...';
+      statusMessage.style.display = 'none';
+
+      const formData = {
+        location: document.getElementById('location').value.trim(),
+        insideOutside: document.getElementById('insideOutside').value,
+        length: document.getElementById('length').value,
+        width: document.getElementById('width').value,
+        height: document.getElementById('height').value,
+        qty: document.getElementById('qty').value
+      };
+
+      // Google Apps Script par CORS error se bachne ke liye text/plain use kiya gaya hai
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.status === 'success') {
+          statusMessage.innerText = 'Data Saved Successfully! (Serial No: ' + result.serialNo + ')';
+          statusMessage.className = 'success';
+          statusMessage.style.display = 'block';
+          form.reset();
+        } else {
+          throw new Error(result.message || 'Submission failed');
+        }
+      })
+      .catch(error => {
+        statusMessage.innerText = 'Error: Data save nahi hua. Please check URL or internet.';
+        statusMessage.className = 'error';
+        statusMessage.style.display = 'block';
+        console.error('Error:', error);
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Submit Data';
+      });
+    });
+  </script>
+
+</body>
+</html>
