@@ -51,6 +51,7 @@
       border-radius: 6px;
       font-size: 15px;
       transition: border-color 0.2s;
+      background-color: #fff;
     }
     .form-group input:focus,
     .form-group select:focus {
@@ -107,9 +108,24 @@
     <h2>Measurement Data Entry</h2>
     <form id="measurementForm">
       
+      <!-- JOB SUPERVISOR DROPDOWN -->
+      <div class="form-group">
+        <label for="jobSupervisor">JOB SUPERVISOR *</label>
+        <select id="jobSupervisor" name="jobSupervisor" required>
+          <option value="" disabled selected>Select Supervisor Name</option>
+          <option value="MR KRISHNA">MR KRISHNA</option>
+          <option value="MR RAMU">MR RAMU</option>
+          <option value="MR PINTU">MR PINTU</option>
+          <option value="MR RANJEET">MR RANJEET</option>
+          <option value="MR GOPAL">MR GOPAL</option>
+          <option value="MR ANKIT">MR ANKIT</option>
+          <option value="MR KHEMRAJ">MR KHEMRAJ</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label for="location">LOCATION *</label>
-        <input type="text" id="location" name="location" placeholder="Enter site location" required>
+        <input type="text" id="location" name="location" placeholder="Enter site or area location" required>
       </div>
 
       <div class="form-group">
@@ -162,6 +178,7 @@
       statusMessage.style.display = 'none';
 
       const formData = {
+        jobSupervisor: document.getElementById('jobSupervisor').value,
         location: document.getElementById('location').value.trim(),
         insideOutside: document.getElementById('insideOutside').value,
         length: document.getElementById('length').value,
@@ -170,7 +187,6 @@
         qty: document.getElementById('qty').value
       };
 
-      // Google Apps Script par CORS error se bachne ke liye text/plain use kiya gaya hai
       fetch(SCRIPT_URL, {
         method: 'POST',
         headers: {
@@ -184,7 +200,11 @@
           statusMessage.innerText = 'Data Saved Successfully! (Serial No: ' + result.serialNo + ')';
           statusMessage.className = 'success';
           statusMessage.style.display = 'block';
+          
+          // Form reset karein par Supervisor ka naam selected rehne dein taaki baar-baar select na karna pade
+          const selectedSup = document.getElementById('jobSupervisor').value;
           form.reset();
+          document.getElementById('jobSupervisor').value = selectedSup;
         } else {
           throw new Error(result.message || 'Submission failed');
         }
